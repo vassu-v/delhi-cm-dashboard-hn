@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SarkarSathi — Delhi CM Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="topbar-logo-mark">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="4" width="14" height="9" rx="1.5" stroke="white" stroke-width="1.3"/>
+        <path d="M5 4V3a3 3 0 016 0v1" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="4" y1="8" x2="12" y2="8" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="4" y1="10.5" x2="9" y2="10.5" stroke="white" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="topbar-wordmark">SarkarSathi<em>Delhi CM Command Centre</em></div>
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-date" id="topbar-date">—</div>
+  <div class="topbar-chips">
+    <div class="topbar-chip" id="topbar-open">— active issues</div>
+    <div class="topbar-chip surge" id="topbar-surge">
+      <span class="surge-dot"></span>
+      <span id="topbar-surge-text">— surges</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOP NAV TABS -->
+<div class="topnav">
+  <div class="nav-tab active" data-page="overview">Command Centre</div>
+  <div class="nav-tab" data-page="districts">Districts</div>
+  <div class="nav-tab" data-page="departments">Departments</div>
+  <div class="nav-tab" data-page="issues">Issues</div>
+  <div class="nav-tab" data-page="submit">Log Complaint</div>
+  <div class="nav-tab" data-page="advisor">Strategic Advisor</div>
+  <div class="nav-tab" data-page="chat">Chat</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ── COMMAND CENTRE ── -->
+  <div class="page active" id="page-overview">
+
+    <div class="overview-hero">
+      <div>
+        <div class="overview-eyebrow">Delhi CM Command Centre</div>
+        <div class="overview-title">Grievance Dashboard</div>
+        <div class="overview-date-line" id="overview-date-sub">Loading…</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;color:var(--dim);margin-bottom:4px">System Status</div>
+        <div style="font-size:13px;color:var(--sub)" id="overview-status-line">—</div>
+      </div>
+    </div>
+
+    <!-- Needs Attention bar -->
+    <div class="needs-attention-bar" id="needs-attention-bar" style="display:none"></div>
+
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-label">Total Citizens Heard</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">All time · all districts</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Active Issue Clusters</div>
+        <div class="stat-value" id="stat-open">—</div>
+        <div class="stat-sub">Awaiting resolution</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Critical Priority</div>
+        <div class="stat-value" id="stat-critical">—</div>
+        <div class="stat-sub">Needs immediate action</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Resolution Rate</div>
+        <div class="stat-value" id="stat-rate">—%</div>
+        <div class="stat-sub">Overall closed</div>
+      </div>
+    </div>
+
+    <div class="surge-banner" id="surge-banner">
+      <div class="surge-icon">⚡</div>
+      <div style="flex:1">
+        <div class="surge-banner-title">Surge Alert — complaint volume significantly above normal</div>
+        <div class="surge-banner-items" id="surge-banner-items"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">
+        Complaint Heatmap — District × Category
+        <span>click a cell to filter issues</span>
+      </div>
+      <div class="heatmap-wrap">
+        <div class="heatmap-label-row" id="heatmap-labels"></div>
+        <div id="heatmap-grid"></div>
+        <div class="heatmap-legend" id="heatmap-legend"></div>
+      </div>
+    </div>
+
+    <div class="grid-2-1">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--line)">
+          <div class="card-title" style="margin:0">Department Performance</div>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Department</th><th>Open</th><th>Resolution</th>
+              <th>Avg Days</th><th>Stale</th><th>Rating</th>
+            </tr>
+          </thead>
+          <tbody id="dept-table-body">
+            <tr><td colspan="6" style="padding:24px;text-align:center"><span class="loading"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">Recent Active Issues <span>Last 10</span></div>
+        <div id="recent-feed"><span class="loading"></span></div>
+      </div>
+    </div>
+
+  </div><!-- /overview -->
+
+  <!-- ── DISTRICTS ── -->
+  <div class="page" id="page-districts">
+    <div class="page-header">
+      <div class="page-title">Districts</div>
+      <div class="page-sub">14 revenue districts of the National Capital Territory of Delhi</div>
+    </div>
+    <div class="grid-2-1">
+      <div>
+        <div style="margin-bottom:14px">
+          <select class="filter-select" id="district-select" onchange="onDistrictSelect()" style="width:100%;font-size:13px">
+            <option value="">— Select a district to see its breakdown —</option>
+          </select>
+        </div>
+        <div id="district-detail">
+          <div class="empty">
+            <div class="empty-icon">🗺️</div>
+            <div class="empty-text">Select a district from the list</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="padding:0 0 12px">All 14 Districts</div>
+        <div id="district-list"><div style="text-align:center;padding:20px"><span class="loading"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DEPARTMENTS ── -->
+  <div class="page" id="page-departments">
+    <div class="page-header">
+      <div class="page-title">Departments</div>
+      <div class="page-sub">Performance tracking and stale issues across all Delhi departments</div>
+    </div>
+    <div class="dept-cards-grid" id="dept-cards">
+      <div style="grid-column:1/-1;text-align:center;padding:40px"><span class="loading"></span></div>
+    </div>
+  </div>
+
+  <!-- ── ISSUES (CLUSTER-FIRST) ── -->
+  <div class="page" id="page-issues">
+    <div class="page-header">
+      <div class="page-title">Issues</div>
+      <div class="page-sub">Citizen issues grouped by cluster. Click a row to see all linked reports and update status.</div>
+    </div>
+    <div class="filters" id="issue-filters">
+      <select class="filter-select" id="if-district" onchange="loadClusters()"><option value="">All Districts</option></select>
+      <select class="filter-select" id="if-department" onchange="loadClusters()"><option value="">All Departments</option></select>
+      <select class="filter-select" id="if-status" onchange="loadClusters()">
+        <option value="">Active Issues</option>
+        <option>Received</option><option>Assigned</option><option>In Progress</option><option>Resolved</option>
+      </select>
+      <select class="filter-select" id="if-priority" onchange="loadClusters()">
+        <option value="">All Priorities</option>
+        <option>medium</option><option>high</option><option>critical</option>
+      </select>
+      <select class="filter-select" id="if-category" onchange="loadClusters()"><option value="">All Categories</option></select>
+    </div>
+    <div id="issues-count-bar" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Issue Summary</th><th>District</th><th>Category</th>
+            <th>Department</th><th>Citizens</th><th>Status</th><th>Priority</th>
+          </tr>
+        </thead>
+        <tbody id="cluster-tbody">
+          <tr><td colspan="7" style="padding:28px;text-align:center"><span class="loading"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── LOG COMPLAINT ── -->
+  <div class="page" id="page-submit">
+    <div class="page-header">
+      <div class="page-title">Log a Complaint</div>
+      <div class="page-sub">Submit a citizen complaint. It will be automatically matched with similar issues in the same area.</div>
+    </div>
+    <div style="max-width:640px">
+      <form id="submit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Citizen Name</label>
+            <input class="form-input" id="s-name" placeholder="Full name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" id="s-contact" placeholder="+91-XXXXXXXXXX">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">(optional)</span></label>
+          <input class="form-input" id="s-email" type="email" placeholder="citizen@example.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">District</label>
+            <select class="form-select" id="s-district" required>
+              <option value="">— Select District —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type of Issue</label>
+            <select class="form-select" id="s-category" required>
+              <option value="">— Select Category —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Priority Level</label>
+            <select class="form-select" id="s-priority">
+              <option value="low">Low — Non-urgent</option>
+              <option value="medium" selected>Medium — Standard</option>
+              <option value="high">High — Urgent</option>
+              <option value="critical">Critical — Immediate action</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">How did this come in?</label>
+            <select class="form-select" id="s-source">
+              <option value="portal">Online Portal</option>
+              <option value="walk-in">Walk-in</option>
+              <option value="phone">Phone Call</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Describe the Problem</label>
+          <textarea class="form-textarea" id="s-description"
+            placeholder="What is happening, where, and for how long? Include location details and who is affected." required></textarea>
+          <div class="form-hint">A clear description helps match this with similar complaints and escalate faster.</div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submit-btn" style="width:100%;justify-content:center;padding:13px 18px">
+          Submit Complaint
+        </button>
+        <div class="cluster-match" id="cluster-match"></div>
+      </form>
+      <div class="submit-success" id="submit-success">
+        <div class="submit-success-icon">✓</div>
+        <div class="submit-success-title">Complaint Logged</div>
+        <div class="submit-success-sub" id="submit-success-sub">
+          The complaint has been recorded and routed to the appropriate department.
+        </div>
+        <div class="submit-success-link" onclick="goPage('issues')">View active issues →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHAT ── -->
+  <div class="page" id="page-chat">
+    <div class="page-header" style="margin-bottom:16px">
+      <div class="page-title">Chat</div>
+      <div class="page-sub">Ask about grievances, district patterns, department performance, or active surges across Delhi.</div>
+    </div>
+    <div class="chat-page-wrap">
+      <div class="chat-starters">
+        <div class="chat-starter" onclick="useStarter(this)">Which district has the most complaints?</div>
+        <div class="chat-starter" onclick="useStarter(this)">What are the active surges right now?</div>
+        <div class="chat-starter" onclick="useStarter(this)">How is DJB performing this month?</div>
+        <div class="chat-starter" onclick="useStarter(this)">Which issues have been stale the longest?</div>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chat-messages">
+          <div class="msg">
+            <div class="msg-from">Delhi CM Advisor</div>
+            <div class="bubble ai">
+              I can answer questions about complaints across all 14 Delhi districts — district breakdowns, department performance, surge alerts, stale issues, and more. What would you like to know?
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chat-input"
+            placeholder="Ask about grievances, districts, departments, surges… (press Enter to send)" autocomplete="off">
+          <button class="btn btn-primary" onclick="sendChat()" style="border-left:none;border-radius:0">Send</button>
+          <button class="btn btn-ghost" onclick="clearChat()" style="border-left:none;border-radius:0 0 var(--radius-lg) 0">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STRATEGIC ADVISOR ── -->
+  <div class="page" id="page-advisor">
+    <div class="page-header" style="margin-bottom:16px">
+      <div class="page-title">Strategic Advisor</div>
+      <div class="page-sub">Analyses districts, departments, and complaint patterns to surface what needs attention. Runs automatically when you visit.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
+      <input class="form-input" id="advisor-query"
+        placeholder="Ask about a specific district, department, or issue — or leave blank for a full overview"
+        style="flex:1">
+      <button class="btn btn-primary" id="advisor-btn" onclick="runAdvisor()">Run Analysis</button>
+      <button class="btn btn-ghost" onclick="clearAdvisor()">Reset</button>
+    </div>
+    <div class="advisor-thread" id="advisor-thread">
+      <div class="advisor-empty">
+        <div class="advisor-empty-title">No analysis yet</div>
+        <div class="advisor-empty-hint">Click "Run Analysis" to generate strategic recommendations</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- CLUSTER DETAIL MODAL -->
+<div class="modal-overlay" id="cluster-modal" onclick="if(event.target===this)closeClusterModal()">
+  <div class="modal" style="width:700px;max-width:95vw">
+    <div class="modal-header">
+      <div class="modal-title" id="cluster-modal-title">Issue Cluster</div>
+      <button class="modal-close" onclick="closeClusterModal()">✕</button>
+    </div>
+    <div class="modal-body" id="cluster-modal-body"></div>
+  </div>
+</div>
+
+<!-- GRIEVANCE DETAIL MODAL (district page drill-down) -->
+<div class="modal-overlay" id="grievance-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Grievance Detail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
