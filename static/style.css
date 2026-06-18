@@ -429,11 +429,13 @@ html, body {
   max-height: 160px; overflow-y: auto; background: var(--paper);
 }
 details.trace-collapsible summary {
-  cursor: pointer; list-style: none; user-select: none; border-bottom: none;
+  cursor: pointer; user-select: none; border-bottom: none;
+  list-style: none; /* Firefox */
 }
-details.trace-collapsible summary::-webkit-details-marker { display: none; }
+details.trace-collapsible summary::-webkit-details-marker { display: none; } /* Safari legacy */
+details.trace-collapsible summary::marker { display: none; content: ''; }    /* Chrome/Safari modern */
 details.trace-collapsible summary::after {
-  float: right; content: '▶'; font-size: 9px; opacity: 0.5; margin-left: 8px;
+  float: right; content: '▶'; font-size: 9px; opacity: 0.5; margin-left: 8px; line-height: 1;
 }
 details.trace-collapsible[open] > summary { border-bottom: 1px solid var(--line); }
 details.trace-collapsible[open] summary::after { content: '▼'; }

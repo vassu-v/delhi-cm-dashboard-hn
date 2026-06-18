@@ -84,11 +84,12 @@ async function loadOverview() {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 
-    const [city, surges, depts, recentClusters] = await Promise.all([
+    const [city, surges, depts, recentClusters, staleClusters] = await Promise.all([
       api('/patterns/city'),
       api('/patterns/surges'),
       api('/patterns/departments'),
       api('/recent-clusters?limit=10'),
+      api('/stale-clusters?limit=5'),
     ]);
 
     animateCounter(document.getElementById('stat-total'),    city.total || 0);
@@ -110,7 +111,7 @@ async function loadOverview() {
     }
 
     renderSurgeBanner(surges);
-    renderNeedsAttention(surges, recentClusters);
+    renderNeedsAttention(surges, staleClusters);
     await loadHeatmap();
     renderDeptTable(depts, 'dept-table-body');
     renderClusterFeed(recentClusters, 'recent-feed');
@@ -118,11 +119,10 @@ async function loadOverview() {
 }
 
 // ── NEEDS ATTENTION ───────────────────────────────────────────────
-function renderNeedsAttention(surges, clusters) {
+function renderNeedsAttention(surges, staleClusters) {
   const bar = document.getElementById('needs-attention-bar');
   if (!bar) return;
 
-  const staleClusters = (clusters || []).filter(c => c.stale_flag);
   let html = '';
 
   if (surges && surges.length > 0) {
@@ -133,13 +133,16 @@ function renderNeedsAttention(surges, clusters) {
         ${s.label ? `(${esc(s.label)})` : ''}
         <span class="na-link" onclick="filterIssuesByDistrictCat('${esc(s.district)}','${esc(s.category)}')">View issues →</span>
       </span>`;
-  } else if (staleClusters.length > 0) {
-    const c = staleClusters.sort((a, b) => (b.weight || 0) - (a.weight || 0))[0];
+  }
+
+  if (staleClusters && staleClusters.length > 0) {
+    const c = staleClusters[0];
+    if (html) html += `<span style="margin:0 10px;color:var(--line)">|</span>`;
     html += `<span class="na-badge na-stale">STALE</span>
       <span class="na-text">
-        <b>${esc(c.district)}</b> — ${esc((c.summary || '').slice(0, 60))}
-        (${c.weight} citizens · ${c.days_since_update} days without update)
-        <span class="na-link" onclick="openClusterModal(${parseInt(c.id,10)})">View →</span>
+        <b>${esc(c.district)}</b> — ${esc((c.summary || '').slice(0, 55))}
+        (${c.weight} citizens · ${c.days_since_update}d)
+        <span class="na-link" onclick="openClusterModal(${parseInt(c.id, 10)})">View →</span>
       </span>`;
   }
 

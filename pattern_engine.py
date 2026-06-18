@@ -39,27 +39,28 @@ def get_city_overview() -> dict:
     c.execute("SELECT COUNT(*) as n FROM grievances")
     total = c.fetchone()["n"]
 
-    c.execute("SELECT COUNT(*) as n FROM grievances WHERE status != 'Resolved'")
+    # open/critical/stale from clusters so hero card matches the Issues page
+    c.execute("SELECT COUNT(*) as n FROM clusters WHERE status != 'Resolved'")
     open_count = c.fetchone()["n"]
 
     c.execute("SELECT COUNT(*) as n FROM grievances WHERE status = 'Resolved' AND date_resolved = ?", (today,))
     resolved_today = c.fetchone()["n"]
 
-    c.execute("SELECT COUNT(*) as n FROM grievances WHERE priority = 'critical' AND status != 'Resolved'")
+    c.execute("SELECT COUNT(*) as n FROM clusters WHERE priority = 'critical' AND status != 'Resolved'")
     critical = c.fetchone()["n"]
 
-    c.execute("SELECT COUNT(*) as n FROM grievances WHERE stale_flag = 1")
+    c.execute("SELECT COUNT(*) as n FROM clusters WHERE stale_flag = 1")
     stale = c.fetchone()["n"]
 
-    # Overall resolution rate
+    # Overall resolution rate (grievances = citizen reports resolved)
     c.execute("SELECT COUNT(*) as n FROM grievances WHERE status = 'Resolved'")
     resolved_total = c.fetchone()["n"]
     resolution_rate = round((resolved_total / total * 100), 1) if total > 0 else 0
 
-    # Avg resolution days overall
+    # Avg resolution days from clusters
     c.execute("""
         SELECT AVG(julianday(date_resolved) - julianday(date_received)) as avg_days
-        FROM grievances WHERE status = 'Resolved' AND date_received IS NOT NULL AND date_resolved IS NOT NULL
+        FROM clusters WHERE status = 'Resolved' AND date_received IS NOT NULL AND date_resolved IS NOT NULL
     """)
     row = c.fetchone()
     avg_days = round(row["avg_days"] or 0, 1)

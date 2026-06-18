@@ -137,6 +137,10 @@ def list_clusters(
 def recent_clusters(limit: int = 10):
     return issue_engine.get_recent_clusters(limit)
 
+@app.get("/api/stale-clusters")
+def stale_clusters(limit: int = 5):
+    return issue_engine.get_stale_clusters(limit)
+
 @app.get("/api/clusters/{cluster_id}")
 def get_cluster(cluster_id: int):
     c = issue_engine.get_cluster_by_id(cluster_id)

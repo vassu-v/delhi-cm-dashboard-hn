@@ -437,6 +437,20 @@ def get_recent_clusters(limit=10):
     return [dict(r) for r in rows]
 
 
+def get_stale_clusters(limit=5):
+    """Return stale clusters sorted by staleness (most overdue first)."""
+    refresh_cluster_stale_flags()
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT * FROM clusters WHERE stale_flag=1 AND status != 'Resolved'
+        ORDER BY days_since_update DESC, weight DESC LIMIT ?
+    """, (limit,))
+    rows = cursor.fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
 def truncate_db():
     """Drop all issue-engine tables and recreate (called by seed --reset)."""
     db = get_db()
