@@ -1,15 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 from contextlib import asynccontextmanager
 import os
+import base64 as b64_module
 import grievance_engine
 import issue_engine
 import pattern_engine
 import rag_engine
 import ai
+import ocr_normalizer
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -254,6 +256,32 @@ def get_suggestions(req: Optional[SuggestionsRequest] = None):
 @app.get("/api/profile")
 def get_profile():
     return grievance_engine.get_profile()
+
+
+# ── OCR / Image Intake ───────────────────────────────────────────────────────
+
+@app.post("/api/extract-complaint")
+async def extract_complaint(file: UploadFile = File(...)):
+    """
+    Accepts an uploaded image file.
+    Returns extracted complaint fields for pre-filling the submit form.
+    """
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only image files are accepted (JPEG, PNG, WebP).")
+
+    try:
+        image_bytes = await file.read()
+        if len(image_bytes) > 10 * 1024 * 1024:  # 10MB limit
+            raise HTTPException(status_code=400, detail="Image too large. Maximum size is 10MB.")
+
+        image_base64 = b64_module.b64encode(image_bytes).decode("utf-8")
+        result = ocr_normalizer.extract_from_image(image_base64, file.content_type)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ── Frontend ──────────────────────────────────────────────────────────────────

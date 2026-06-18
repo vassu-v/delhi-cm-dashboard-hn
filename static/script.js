@@ -872,6 +872,124 @@ function clearAdvisor() {
     </div>`;
 }
 
+// ── SCAN / OCR INTAKE ─────────────────────────────────────────────
+let scanFile = null;
+
+function onScanFileSelected(input) {
+  if (!input.files || !input.files[0]) return;
+  scanFile = input.files[0];
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview     = document.getElementById('scan-preview-img');
+    const previewWrap = document.getElementById('scan-preview-wrap');
+    const uploadZone  = document.getElementById('scan-upload-zone');
+    if (preview)     preview.src = e.target.result;
+    if (previewWrap) previewWrap.style.display = 'flex';
+    if (uploadZone)  uploadZone.style.display = 'none';
+
+    const extractBtn = document.getElementById('scan-extract-btn');
+    if (extractBtn) extractBtn.style.display = 'inline-flex';
+
+    const label = document.getElementById('scan-upload-label');
+    if (label) label.textContent = scanFile.name;
+  };
+  reader.readAsDataURL(scanFile);
+}
+
+function clearScan() {
+  scanFile = null;
+  const fileInput = document.getElementById('scan-file-input');
+  if (fileInput) fileInput.value = '';
+
+  document.getElementById('scan-preview-wrap').style.display = 'none';
+  document.getElementById('scan-upload-zone').style.display = 'flex';
+  document.getElementById('scan-extract-btn').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'none';
+  document.getElementById('scan-result').innerHTML = '';
+}
+
+async function extractFromScan() {
+  if (!scanFile) return;
+
+  const btn       = document.getElementById('scan-extract-btn');
+  const resultDiv = document.getElementById('scan-result');
+
+  btn.disabled = true;
+  btn.textContent = 'Extracting…';
+  resultDiv.style.display = 'none';
+  resultDiv.innerHTML = '';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', scanFile);
+
+    const r = await fetch('/api/extract-complaint', { method: 'POST', body: formData });
+    const result = await r.json();
+
+    if (result.error === 'nothing_recognizable') {
+      resultDiv.innerHTML = `
+        <div class="scan-error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Nothing recognizable in this image. Please try a clearer photo or fill the form manually.
+        </div>`;
+      resultDiv.style.display = 'block';
+      return;
+    }
+
+    if (result.error) {
+      resultDiv.innerHTML = `
+        <div class="scan-error">
+          Extraction failed: ${esc(result.detail || result.error)}. Please fill the form manually.
+        </div>`;
+      resultDiv.style.display = 'block';
+      return;
+    }
+
+    // Pre-fill form fields
+    const confidence = result.confidence || {};
+    let filledCount  = 0;
+
+    if (result.description)     { const el = document.getElementById('s-description'); if (el) { el.value = result.description;     filledCount++; } }
+    if (result.citizen_name)    { const el = document.getElementById('s-name');        if (el) { el.value = result.citizen_name;    filledCount++; } }
+    if (result.citizen_contact) { const el = document.getElementById('s-contact');     if (el) { el.value = result.citizen_contact; filledCount++; } }
+    if (result.district)        { const el = document.getElementById('s-district');    if (el) { el.value = result.district;        filledCount++; } }
+    if (result.category)        { const el = document.getElementById('s-category');    if (el) { el.value = result.category;        filledCount++; } }
+    if (result.source)          { const el = document.getElementById('s-source');      if (el) { el.value = result.source; } }
+
+    // Confidence chips
+    const colors = { high: 'var(--green-viv)', medium: 'var(--amber-viv)', low: 'var(--red-viv)' };
+    const labels = { description: 'Description', citizen_name: 'Name', citizen_contact: 'Contact', district: 'District', category: 'Category' };
+    const confFields = Object.entries(confidence)
+      .filter(([k]) => k !== 'source')
+      .map(([field, level]) =>
+        `<span class="scan-conf-chip" style="color:${colors[level] || 'var(--muted)'}">
+          ${labels[field] || field}: ${level}
+        </span>`
+      ).join('');
+
+    resultDiv.innerHTML = `
+      <div class="scan-success">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        ${filledCount} field${filledCount !== 1 ? 's' : ''} extracted. Review highlighted fields before submitting.
+        ${confFields ? `<div class="scan-conf-row">${confFields}</div>` : ''}
+      </div>`;
+    resultDiv.style.display = 'block';
+
+    document.getElementById('submit-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (e) {
+    resultDiv.innerHTML = `
+      <div class="scan-error">
+        Network error: ${esc(e.message)}. Please fill the form manually.
+      </div>`;
+    resultDiv.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Extract Complaint Details`;
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();

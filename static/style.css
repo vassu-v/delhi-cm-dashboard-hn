@@ -637,6 +637,87 @@ details.trace-collapsible[open] summary::after { content: '▼'; }
   .main { padding: 24px 20px; }
 }
 
+/* ── SCAN SECTION ────────────────────────────────────────────── */
+.scan-section {
+  max-width: 640px;
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.scan-header { margin-bottom: 16px; }
+.scan-title {
+  font-family: 'IBM Plex Serif', serif;
+  font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px;
+}
+.scan-sub { font-size: 13px; color: var(--muted); }
+
+.scan-upload-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 32px 24px;
+  border: 2px dashed var(--border); border-radius: var(--radius-lg);
+  cursor: pointer; text-align: center; transition: all 0.2s ease;
+  background: var(--raised);
+}
+.scan-upload-zone:hover {
+  border-color: var(--blue); background: var(--blue-lt);
+}
+.scan-upload-icon { color: var(--muted); }
+.scan-upload-zone:hover .scan-upload-icon { color: var(--blue); }
+.scan-upload-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.scan-upload-sub { font-size: 11px; color: var(--muted); }
+
+.scan-preview-wrap {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 12px;
+}
+.scan-preview-img {
+  max-height: 180px; max-width: 100%;
+  border-radius: var(--radius); border: 1px solid var(--line);
+  object-fit: contain; background: var(--raised);
+}
+.scan-clear-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  padding: 4px 10px; border-radius: var(--radius);
+  transition: all 0.15s; white-space: nowrap;
+}
+.scan-clear-btn:hover { background: var(--red-lt); color: var(--red); border-color: var(--red-bd); }
+
+.scan-extract-btn { margin-bottom: 12px; }
+
+.scan-result { margin-bottom: 12px; }
+
+.scan-success {
+  background: var(--green-lt); border: 1px solid var(--green-bd);
+  border-left: 3px solid var(--green-viv); color: var(--green);
+  padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13px; display: flex; flex-direction: column; gap: 8px;
+  animation: slideRight 0.3s ease both;
+}
+.scan-error {
+  background: var(--red-lt); border: 1px solid var(--red-bd);
+  border-left: 3px solid var(--red-viv); color: var(--red);
+  padding: 12px 16px; border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+  animation: slideRight 0.3s ease both;
+}
+.scan-conf-row {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+}
+.scan-conf-chip {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; padding: 2px 8px;
+  background: white; border: 1px solid currentColor;
+  border-radius: 3px; opacity: 0.85;
+}
+.scan-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 24px; color: var(--dim); font-size: 12px;
+}
+.scan-divider::before, .scan-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--line);
+}
+
 /* ── FAB LOG COMPLAINT ─────────────────────────────────────────── */
 .fab-log-complaint {
   position: fixed; bottom: 28px; left: 28px; z-index: 150;

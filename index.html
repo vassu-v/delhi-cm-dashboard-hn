@@ -217,6 +217,52 @@
       <div class="page-sub">Submit a citizen complaint. It will be automatically matched with similar issues in the same area.</div>
     </div>
     <div style="max-width:640px">
+
+      <!-- SCAN SECTION — pre-fills form from uploaded image -->
+      <div class="scan-section" id="scan-section">
+        <div class="scan-header">
+          <div class="scan-title">Scan a Complaint Document</div>
+          <div class="scan-sub">Upload a photo of a letter, form, or screenshot. AI will extract the details.</div>
+        </div>
+
+        <label class="scan-upload-zone" id="scan-upload-zone" for="scan-file-input">
+          <div class="scan-upload-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <div class="scan-upload-label" id="scan-upload-label">Take a photo or upload an image</div>
+          <div class="scan-upload-sub">Supports letters, forms, WhatsApp screenshots · JPEG, PNG, WebP · Max 10MB</div>
+          <input
+            type="file"
+            id="scan-file-input"
+            accept="image/*"
+            capture="environment"
+            style="display:none"
+            onchange="onScanFileSelected(this)"
+          >
+        </label>
+
+        <div class="scan-preview-wrap" id="scan-preview-wrap" style="display:none">
+          <img id="scan-preview-img" class="scan-preview-img" src="" alt="Selected image">
+          <button class="scan-clear-btn" onclick="clearScan()">✕ Clear</button>
+        </div>
+
+        <button class="btn btn-primary scan-extract-btn" id="scan-extract-btn" style="display:none" onclick="extractFromScan()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Extract Complaint Details
+        </button>
+
+        <div class="scan-result" id="scan-result" style="display:none"></div>
+
+        <div class="scan-divider">
+          <span>or fill the form manually below</span>
+        </div>
+      </div>
+
       <form id="submit-form">
         <div class="form-row">
           <div class="form-group">
