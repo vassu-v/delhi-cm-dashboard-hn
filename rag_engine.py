@@ -319,10 +319,12 @@ def _execute_tool(tool_name, argument):
 
     try:
         if tool_name == "get_district_data":
-            db = grievance_engine.get_db()
+            import issue_engine
+            db = issue_engine.get_db()
             rows = db.execute("""
-                SELECT category, COUNT(*) as cnt, status FROM grievances
-                WHERE district = ? GROUP BY category, status ORDER BY cnt DESC
+                SELECT category, COUNT(*) as cluster_count, SUM(weight) as citizen_count, status
+                FROM clusters
+                WHERE district = ? GROUP BY category, status ORDER BY cluster_count DESC
             """, (argument,)).fetchall()
             db.close()
             if not rows:
@@ -330,11 +332,12 @@ def _execute_tool(tool_name, argument):
             return "\n".join([str(dict(r)) for r in rows])
 
         elif tool_name == "get_department_performance":
-            db = grievance_engine.get_db()
+            import issue_engine
+            db = issue_engine.get_db()
             rows = db.execute("""
-                SELECT status, priority, COUNT(*) as cnt,
+                SELECT status, priority, COUNT(*) as cluster_count, SUM(weight) as citizen_count,
                        AVG(CASE WHEN status='Resolved' THEN julianday(date_resolved)-julianday(date_received) ELSE NULL END) as avg_days
-                FROM grievances WHERE department_assigned = ?
+                FROM clusters WHERE department_assigned = ?
                 GROUP BY status, priority
             """, (argument,)).fetchall()
             db.close()

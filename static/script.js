@@ -403,7 +403,7 @@ async function loadDepartments() {
         <div class="dept-metrics">
           <div>
             <div class="dept-metric-val" style="color:var(--amber)">${fmt(d.open_count)}</div>
-            <div class="dept-metric-lbl">Open</div>
+            <div class="dept-metric-lbl">Open Reports</div>
           </div>
           <div>
             <div class="dept-metric-val" style="color:var(--green)">${rate}%</div>
@@ -415,7 +415,7 @@ async function loadDepartments() {
           </div>
           <div>
             <div class="dept-metric-val" style="color:var(--red)">${fmt(d.stale_count)}</div>
-            <div class="dept-metric-lbl">Stale</div>
+            <div class="dept-metric-lbl">Stale Reports</div>
           </div>
         </div>
         <div class="dept-res-row">
@@ -465,7 +465,7 @@ async function loadClusters() {
         ? `<span class="tag tag-stale" style="margin-left:4px;font-size:9px">Stale&nbsp;${c.days_since_update}d</span>`
         : '';
       const dept  = c.department_assigned || '<span style="color:var(--dim)">—</span>';
-      return `<tr class="clickable ${pRow}" onclick="openClusterModal(${c.id})">
+      return `<tr class="clickable ${pRow}${c.stale_flag ? ' stale-row' : ''}" onclick="openClusterModal(${c.id})">
         <td>
           <span style="font-size:13px;font-weight:500">${esc((c.summary || '').slice(0, 60))}</span>${stale}
         </td>
@@ -654,10 +654,7 @@ async function openGrievanceModal(id) {
       ${g.stale_flag ? `<div class="detail-row"><div class="detail-label">Attention</div><div class="detail-value"><span class="tag tag-stale">Stale · ${g.days_since_update} days without update</span></div></div>` : ''}
       ${g.cluster_id ? `<div class="detail-row"><div class="detail-label">Cluster</div><div class="detail-value"><a href="#" onclick="closeModal();openClusterModal(${g.cluster_id});return false" style="color:var(--blue);text-decoration:underline">View issue cluster #${g.cluster_id} →</a></div></div>` : ''}
       <div class="modal-actions">
-        <select class="form-select" id="modal-status-sel" style="flex:1;border:1px solid var(--border);padding:7px 10px">
-          ${statuses.map(s => `<option ${s === g.status ? 'selected' : ''}>${s}</option>`).join('')}
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="updateGrievanceStatus(${g.id})">Update Status</button>
+        <span style="font-size:12px;color:var(--muted);flex:1">Status is managed at the cluster level.</span>
         <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       </div>`;
   } catch (e) {
