@@ -320,27 +320,30 @@ def run(reset=False):
     # ── Backdate ~40% of non-resolved clusters to produce real staleness ──────
     print("Backdating non-resolved clusters to create staleness...")
     db2 = issue_engine.get_db()
-    non_resolved = [r[0] for r in db2.execute(
-        "SELECT id FROM clusters WHERE status != 'Resolved'"
-    ).fetchall()]
-    db2.close()
-
-    stale_ids = random.sample(non_resolved, int(len(non_resolved) * 0.40))
-    db3 = issue_engine.get_db()
-    for cid in stale_ids:
-        days_back = random.randint(8, 20)
-        stale_ts = (datetime.datetime.now() - datetime.timedelta(days=days_back)).isoformat()
-        db3.execute(
-            "UPDATE clusters SET last_updated=?, stale_flag=1, days_since_update=? WHERE id=?",
-            (stale_ts, days_back, cid)
-        )
-        db3.execute(
-            "UPDATE grievances SET last_updated=?, stale_flag=1, days_since_update=? WHERE cluster_id=?",
-            (stale_ts, days_back, cid)
-        )
-    db3.commit()
-    db3.close()
-    print(f"  {len(stale_ids)} clusters marked stale.\n")
+    try:
+        non_resolved = [r[0] for r in db2.execute(
+            "SELECT id FROM clusters WHERE status != 'Resolved'"
+        ).fetchall()]
+        if non_resolved:
+            stale_ids = random.sample(non_resolved, int(len(non_resolved) * 0.40))
+            now = datetime.datetime.now()
+            for cid in stale_ids:
+                days_back = random.randint(8, 20)
+                stale_ts = (now - datetime.timedelta(days=days_back)).isoformat()
+                db2.execute(
+                    "UPDATE clusters SET last_updated=?, stale_flag=1, days_since_update=? WHERE id=?",
+                    (stale_ts, days_back, cid)
+                )
+                db2.execute(
+                    "UPDATE grievances SET last_updated=?, stale_flag=1, days_since_update=? WHERE cluster_id=?",
+                    (stale_ts, days_back, cid)
+                )
+            db2.commit()
+            print(f"  {len(stale_ids)} clusters marked stale.\n")
+        else:
+            print("  No non-resolved clusters to backdate.\n")
+    finally:
+        db2.close()
 
     # ── Verify ────────────────────────────────────────────────────────────────
     db = issue_engine.get_db()

@@ -47,7 +47,7 @@ def get_model():
 
 
 def get_db():
-    db = sqlite3.connect(DB_PATH)
+    db = sqlite3.connect(DB_PATH, timeout=30)
     try:
         db.enable_load_extension(True)
         sqlite_vec.load(db)
@@ -59,6 +59,7 @@ def get_db():
         except Exception:
             pass
     db.row_factory = sqlite3.Row
+    db.execute("PRAGMA journal_mode=WAL")
     return db
 
 

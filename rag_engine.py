@@ -314,12 +314,11 @@ QUESTION:
 
 def _execute_tool(tool_name, argument):
     """Execute tools for the suggestion agent."""
-    import grievance_engine
     import pattern_engine
+    import issue_engine
 
     try:
         if tool_name == "get_district_data":
-            import issue_engine
             db = issue_engine.get_db()
             rows = db.execute("""
                 SELECT category, COUNT(*) as cluster_count, SUM(weight) as citizen_count, status
@@ -332,7 +331,6 @@ def _execute_tool(tool_name, argument):
             return "\n".join([str(dict(r)) for r in rows])
 
         elif tool_name == "get_department_performance":
-            import issue_engine
             db = issue_engine.get_db()
             rows = db.execute("""
                 SELECT status, priority, COUNT(*) as cluster_count, SUM(weight) as citizen_count,
@@ -353,29 +351,29 @@ def _execute_tool(tool_name, argument):
             return "\n".join([str(s) for s in relevant])
 
         elif tool_name == "get_stale_grievances":
-            db = grievance_engine.get_db()
+            db = issue_engine.get_db()
             rows = db.execute("""
-                SELECT id, title, district, days_since_update, priority, status
-                FROM grievances WHERE stale_flag=1 AND department_assigned=?
+                SELECT id, summary, district, days_since_update, priority, status
+                FROM clusters WHERE stale_flag=1 AND department_assigned=?
                 ORDER BY days_since_update DESC LIMIT 10
             """, (argument,)).fetchall()
             db.close()
             if not rows:
-                return f"No stale grievances for department: {argument}"
+                return f"No stale clusters for department: {argument}"
             return "\n".join([str(dict(r)) for r in rows])
 
         elif tool_name == "get_resolution_trends":
             limit = int(argument) if str(argument).isdigit() else 10
-            db = grievance_engine.get_db()
+            db = issue_engine.get_db()
             rows = db.execute("""
                 SELECT district, department_assigned, category, date_received, date_resolved,
                        julianday(date_resolved)-julianday(date_received) as days_taken
-                FROM grievances WHERE status='Resolved' AND date_resolved IS NOT NULL
+                FROM clusters WHERE status='Resolved' AND date_resolved IS NOT NULL
                 ORDER BY date_resolved DESC LIMIT ?
             """, (limit,)).fetchall()
             db.close()
             if not rows:
-                return "No resolved grievances found."
+                return "No resolved clusters found."
             return "\n".join([str(dict(r)) for r in rows])
 
         else:
