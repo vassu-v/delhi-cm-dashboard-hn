@@ -23,6 +23,14 @@
   </div>
   <div class="topbar-sep"></div>
   <div class="topbar-date" id="topbar-date">—</div>
+  <button class="topbar-ai-toggle" id="topbar-ai-toggle" onclick="toggleAIPanel()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 1.5L9.4 6.1L14 7.5L9.4 8.9L8 13.5L6.6 8.9L2 7.5L6.6 6.1L8 1.5Z" fill="currentColor"/>
+      <circle cx="13" cy="3" r="1.2" fill="currentColor" opacity="0.6"/>
+      <circle cx="3" cy="12" r="0.9" fill="currentColor" opacity="0.4"/>
+    </svg>
+    AI Advisor
+  </button>
   <div class="topbar-chips">
     <div class="topbar-chip" id="topbar-open">— active issues</div>
     <div class="topbar-chip surge" id="topbar-surge">
@@ -38,9 +46,6 @@
   <div class="nav-tab" data-page="districts">Districts</div>
   <div class="nav-tab" data-page="departments">Departments</div>
   <div class="nav-tab" data-page="issues">Issues</div>
-  <div class="nav-tab" data-page="submit">Log Complaint</div>
-  <div class="nav-tab" data-page="advisor">Strategic Advisor</div>
-  <div class="nav-tab" data-page="chat">Chat</div>
 </div>
 
 <!-- MAIN -->
@@ -284,60 +289,78 @@
     </div>
   </div>
 
-  <!-- ── CHAT ── -->
-  <div class="page" id="page-chat">
-    <div class="page-header" style="margin-bottom:16px">
-      <div class="page-title">Chat</div>
-      <div class="page-sub">Ask about grievances, district patterns, department performance, or active surges across Delhi.</div>
+</div><!-- /main -->
+
+<!-- FLOATING ACTION BUTTON — Log Complaint -->
+<button class="fab-log-complaint" id="fab-log-complaint" onclick="goPage('submit')">
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.5 1.5L14.5 4.5L5 14H2v-3L11.5 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+    <path d="M9.5 3.5L12.5 6.5" stroke="currentColor" stroke-width="1.4"/>
+  </svg>
+  Log Complaint
+</button>
+
+<!-- AI OVERLAY -->
+<div class="ai-overlay" id="ai-overlay" onclick="toggleAIPanel()"></div>
+
+<!-- AI SIDE PANEL -->
+<div class="ai-panel" id="ai-panel">
+  <div class="ai-panel-header">
+    <div class="ai-panel-tabs">
+      <div class="ai-panel-tab active" data-panel="chat">Chat</div>
+      <div class="ai-panel-tab" data-panel="advisor">Strategic Advisor</div>
     </div>
-    <div class="chat-page-wrap">
-      <div class="chat-starters">
-        <div class="chat-starter" onclick="useStarter(this)">Which district has the most complaints?</div>
-        <div class="chat-starter" onclick="useStarter(this)">What are the active surges right now?</div>
-        <div class="chat-starter" onclick="useStarter(this)">How is DJB performing this month?</div>
-        <div class="chat-starter" onclick="useStarter(this)">Which issues have been stale the longest?</div>
-      </div>
-      <div class="chat-wrap">
-        <div class="chat-messages" id="chat-messages">
-          <div class="msg">
-            <div class="msg-from">Delhi CM Advisor</div>
-            <div class="bubble ai">
-              I can answer questions about complaints across all 14 Delhi districts — district breakdowns, department performance, surge alerts, stale issues, and more. What would you like to know?
+    <button class="ai-panel-close" onclick="toggleAIPanel()">✕</button>
+  </div>
+  <div class="ai-panel-body">
+
+    <!-- CHAT SECTION -->
+    <div class="ai-panel-section active" id="aip-chat">
+      <div class="chat-page-wrap">
+        <div class="chat-starters">
+          <div class="chat-starter" onclick="useStarter(this)">Which district has the most complaints?</div>
+          <div class="chat-starter" onclick="useStarter(this)">What are the active surges right now?</div>
+          <div class="chat-starter" onclick="useStarter(this)">How is DJB performing this month?</div>
+          <div class="chat-starter" onclick="useStarter(this)">Which issues have been stale the longest?</div>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg">
+              <div class="msg-from">Delhi CM Advisor</div>
+              <div class="bubble ai">
+                I can answer questions about complaints across all 14 Delhi districts — district breakdowns, department performance, surge alerts, stale issues, and more. What would you like to know?
+              </div>
             </div>
           </div>
-        </div>
-        <div class="chat-input-row">
-          <input class="chat-input" id="chat-input"
-            placeholder="Ask about grievances, districts, departments, surges… (press Enter to send)" autocomplete="off">
-          <button class="btn btn-primary" onclick="sendChat()" style="border-left:none;border-radius:0">Send</button>
-          <button class="btn btn-ghost" onclick="clearChat()" style="border-left:none;border-radius:0 0 var(--radius-lg) 0">Clear</button>
+          <div class="chat-input-row">
+            <input class="chat-input" id="chat-input"
+              placeholder="Ask about grievances, districts, departments… (Enter to send)" autocomplete="off">
+            <button class="btn btn-primary" onclick="sendChat()" style="border-left:none;border-radius:0">Send</button>
+            <button class="btn btn-ghost" onclick="clearChat()" style="border-left:none;border-radius:0 0 var(--radius-lg) 0">Clear</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ── STRATEGIC ADVISOR ── -->
-  <div class="page" id="page-advisor">
-    <div class="page-header" style="margin-bottom:16px">
-      <div class="page-title">Strategic Advisor</div>
-      <div class="page-sub">Analyses districts, departments, and complaint patterns to surface what needs attention. Runs automatically when you visit.</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
-      <input class="form-input" id="advisor-query"
-        placeholder="Ask about a specific district, department, or issue — or leave blank for a full overview"
-        style="flex:1">
-      <button class="btn btn-primary" id="advisor-btn" onclick="runAdvisor()">Run Analysis</button>
-      <button class="btn btn-ghost" onclick="clearAdvisor()">Reset</button>
-    </div>
-    <div class="advisor-thread" id="advisor-thread">
-      <div class="advisor-empty">
-        <div class="advisor-empty-title">No analysis yet</div>
-        <div class="advisor-empty-hint">Click "Run Analysis" to generate strategic recommendations</div>
+    <!-- ADVISOR SECTION -->
+    <div class="ai-panel-section" id="aip-advisor">
+      <div class="aip-advisor-bar">
+        <input class="form-input" id="advisor-query"
+          placeholder="Ask about a district, department, or leave blank for overview"
+          style="flex:1;font-size:13px">
+        <button class="btn btn-primary btn-sm" id="advisor-btn" onclick="runAdvisor()">Run</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearAdvisor()">Reset</button>
+      </div>
+      <div class="advisor-thread" id="advisor-thread">
+        <div class="advisor-empty">
+          <div class="advisor-empty-title">No analysis yet</div>
+          <div class="advisor-empty-hint">Click "Run" to generate strategic recommendations</div>
+        </div>
       </div>
     </div>
-  </div>
 
-</div><!-- /main -->
+  </div>
+</div>
 
 <!-- CLUSTER DETAIL MODAL -->
 <div class="modal-overlay" id="cluster-modal" onclick="if(event.target===this)closeClusterModal()">

@@ -56,17 +56,10 @@ function goPage(name) {
     departments: loadDepartments,
     issues:      loadClusters,
     submit:      () => {},
-    chat:        () => {},
-    advisor:     () => {
-      if (advisorCache) {
-        document.getElementById('advisor-thread').innerHTML = advisorCache;
-      } else if (!advisorAutoRun) {
-        advisorAutoRun = true;
-        runAdvisor();
-      }
-    },
   };
   if (loaders[name]) loaders[name]();
+  const fab = document.getElementById('fab-log-complaint');
+  if (fab) fab.style.display = name === 'submit' ? 'none' : '';
 }
 
 // ── API ──────────────────────────────────────────────────────────
@@ -620,6 +613,36 @@ function closeClusterModal() {
   document.getElementById('cluster-modal').classList.remove('open');
 }
 
+// ── AI SIDE PANEL ─────────────────────────────────────────────────
+function toggleAIPanel() {
+  const panel   = document.getElementById('ai-panel');
+  const overlay = document.getElementById('ai-overlay');
+  const btn     = document.getElementById('topbar-ai-toggle');
+  const isOpen  = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+    if (btn) btn.classList.remove('active');
+  } else {
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    if (btn) btn.classList.add('active');
+  }
+}
+
+function switchAIPanelTab(name) {
+  document.querySelectorAll('.ai-panel-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.panel === name)
+  );
+  document.querySelectorAll('.ai-panel-section').forEach(s =>
+    s.classList.toggle('active', s.id === 'aip-' + name)
+  );
+  if (name === 'advisor' && !advisorAutoRun) {
+    advisorAutoRun = true;
+    runAdvisor();
+  }
+}
+
 // ── GRIEVANCE MODAL (district drill-down) ─────────────────────────
 async function openGrievanceModal(id) {
   const modal = document.getElementById('grievance-modal');
@@ -845,7 +868,7 @@ function clearAdvisor() {
   document.getElementById('advisor-thread').innerHTML = `
     <div class="advisor-empty">
       <div class="advisor-empty-title">No analysis yet</div>
-      <div class="advisor-empty-hint">Click "Run Analysis" to get AI-powered strategic recommendations</div>
+      <div class="advisor-empty-hint">Click "Run" to generate strategic recommendations</div>
     </div>`;
 }
 
@@ -860,6 +883,10 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('click', () => goPage(el.dataset.page));
   });
 
+  document.querySelectorAll('.ai-panel-tab').forEach(el => {
+    el.addEventListener('click', () => switchAIPanelTab(el.dataset.panel));
+  });
+
   document.getElementById('chat-input').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   });
@@ -868,7 +895,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('submit-form').addEventListener('submit', submitGrievance);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); closeClusterModal(); }
+    if (e.key === 'Escape') {
+      closeModal(); closeClusterModal();
+      const panel = document.getElementById('ai-panel');
+      if (panel && panel.classList.contains('open')) toggleAIPanel();
+    }
   });
 
   const DISTRICTS = ['Central','East','New Delhi','North','North East','North West',
