@@ -139,7 +139,7 @@ function renderNeedsAttention(surges, clusters) {
       <span class="na-text">
         <b>${esc(c.district)}</b> — ${esc((c.summary || '').slice(0, 60))}
         (${c.weight} citizens · ${c.days_since_update} days without update)
-        <span class="na-link" onclick="openClusterModal(${c.id})">View →</span>
+        <span class="na-link" onclick="openClusterModal(${parseInt(c.id,10)})">View →</span>
       </span>`;
   }
 
@@ -271,7 +271,7 @@ function renderClusterFeed(clusters, containerId) {
   el.innerHTML = clusters.map(c => {
     const cls = c.priority === 'critical' ? 'critical' : c.priority === 'high' ? 'high' : '';
     const stale = c.stale_flag ? `<span class="tag tag-stale" style="margin-left:4px">Stale</span>` : '';
-    return `<div class="feed-item ${cls}" onclick="openClusterModal(${c.id})">
+    return `<div class="feed-item ${cls}" onclick="openClusterModal(${parseInt(c.id,10)})">
       <div style="flex:1;min-width:0">
         <div class="feed-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           ${esc((c.summary || '').slice(0, 60))}${stale}
@@ -370,7 +370,7 @@ async function onDistrictSelect() {
     <div class="card">
       <div class="card-title">Recent Grievances</div>
       ${(d.recent_grievances || []).map(g => `
-        <div class="feed-item ${g.priority === 'critical' ? 'critical' : g.priority === 'high' ? 'high' : ''}" onclick="openGrievanceModal(${g.id})">
+        <div class="feed-item ${g.priority === 'critical' ? 'critical' : g.priority === 'high' ? 'high' : ''}" onclick="openGrievanceModal(${parseInt(g.id,10)})">
           <div>
             <div class="feed-title">${esc((g.title || g.description || '').slice(0, 60))}</div>
             <div class="feed-meta">${esc(g.category)} · ${statusTag(g.status)} · ${fmtDate(g.date_received)}</div>
@@ -465,7 +465,7 @@ async function loadClusters() {
         ? `<span class="tag tag-stale" style="margin-left:4px;font-size:9px">Stale&nbsp;${c.days_since_update}d</span>`
         : '';
       const dept  = c.department_assigned || '<span style="color:var(--dim)">—</span>';
-      return `<tr class="clickable ${pRow}${c.stale_flag ? ' stale-row' : ''}" onclick="openClusterModal(${c.id})">
+      return `<tr class="clickable ${pRow}${c.stale_flag ? ' stale-row' : ''}" onclick="openClusterModal(${parseInt(c.id,10)})">
         <td>
           <span style="font-size:13px;font-weight:500">${esc((c.summary || '').slice(0, 60))}</span>${stale}
         </td>
@@ -519,7 +519,7 @@ async function openClusterModal(id) {
     const grievances = c.grievances || [];
     const gList = grievances.length > 0
       ? grievances.map(g => `
-        <div class="linked-grievance" onclick="openGrievanceModal(${g.id})">
+        <div class="linked-grievance" onclick="openGrievanceModal(${parseInt(g.id,10)})">
           <div class="linked-g-desc">${esc((g.title || g.description || '').slice(0, 80))}</div>
           <div class="linked-g-meta">
             ${esc(g.citizen_name || 'Unknown citizen')}
@@ -577,7 +577,7 @@ async function openClusterModal(id) {
         <select class="form-select" id="cluster-status-sel" style="flex:1;padding:7px 10px">
           ${statuses.map(s => `<option ${s === c.status ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
-        <button class="btn btn-primary btn-sm" onclick="updateClusterStatus(${c.id})">Update Status</button>
+        <button class="btn btn-primary btn-sm" onclick="updateClusterStatus(${parseInt(c.id,10)})">Update Status</button>
       </div>
       <div id="cluster-update-msg" style="font-size:12px;color:var(--green);margin-top:6px;min-height:16px"></div>
 
@@ -652,27 +652,17 @@ async function openGrievanceModal(id) {
       <div class="detail-row"><div class="detail-label">Date Assigned</div><div class="detail-value">${fmtDate(g.date_assigned)}</div></div>
       ${g.date_resolved ? `<div class="detail-row"><div class="detail-label">Date Resolved</div><div class="detail-value" style="color:var(--green)">${fmtDate(g.date_resolved)}</div></div>` : ''}
       ${g.stale_flag ? `<div class="detail-row"><div class="detail-label">Attention</div><div class="detail-value"><span class="tag tag-stale">Stale · ${g.days_since_update} days without update</span></div></div>` : ''}
-      ${g.cluster_id ? `<div class="detail-row"><div class="detail-label">Cluster</div><div class="detail-value"><a href="#" onclick="closeModal();openClusterModal(${g.cluster_id});return false" style="color:var(--blue);text-decoration:underline">View issue cluster #${g.cluster_id} →</a></div></div>` : ''}
+      ${g.cluster_id ? `<div class="detail-row"><div class="detail-label">Cluster</div><div class="detail-value"><a href="#" onclick="closeModal();openClusterModal(${parseInt(g.cluster_id,10)});return false" style="color:var(--blue);text-decoration:underline">View issue cluster #${g.cluster_id} →</a></div></div>` : ''}
       <div class="modal-actions">
-        <span style="font-size:12px;color:var(--muted);flex:1">Status is managed at the cluster level.</span>
+        ${g.cluster_id
+          ? `<span style="font-size:12px;color:var(--muted);flex:1">Status is managed at the cluster level.</span>`
+          : `<span style="font-size:12px;color:var(--muted);flex:1">This report has not been assigned to a cluster yet.</span>`}
         <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
       </div>`;
   } catch (e) {
     document.getElementById('modal-body').innerHTML =
       `<div style="color:var(--red);padding:20px">${esc(e.message)}</div>`;
   }
-}
-
-async function updateGrievanceStatus(id) {
-  const sel = document.getElementById('modal-status-sel');
-  try {
-    await api('/grievances/' + id + '/status', {
-      method: 'POST', body: JSON.stringify({ status: sel.value })
-    });
-    closeModal();
-    if (currentPage === 'issues')    loadClusters();
-    if (currentPage === 'overview')  loadOverview();
-  } catch (e) { alert('Error: ' + e.message); }
 }
 
 function closeModal() {
@@ -816,10 +806,18 @@ function renderAdvisorThread(res, container) {
     const typeLabel = t.type === 'tool_call'   ? `Round ${t.round} · Tool called`
                     : t.type === 'tool_result' ? `Round ${t.round} · Data retrieved`
                     : `Round ${t.round} · Analysis`;
-    html += `<div class="trace-entry">
-      <div class="trace-meta type-${esc(t.type)}">${typeLabel}</div>
-      <div class="trace-text">${esc((t.content || '').slice(0, 700))}${(t.content || '').length > 700 ? '\n…' : ''}</div>
-    </div>`;
+    const content = `${esc((t.content || '').slice(0, 700))}${(t.content || '').length > 700 ? '\n…' : ''}`;
+    if (t.type === 'tool_call' || t.type === 'tool_result') {
+      html += `<details class="trace-entry trace-collapsible">
+        <summary class="trace-meta type-${esc(t.type)}">${typeLabel}</summary>
+        <div class="trace-text">${content}</div>
+      </details>`;
+    } else {
+      html += `<div class="trace-entry">
+        <div class="trace-meta type-${esc(t.type)}">${typeLabel}</div>
+        <div class="trace-text">${content}</div>
+      </div>`;
+    }
   });
   if ((res.suggestions || []).length > 0) {
     if (res.thinking_trace && res.thinking_trace.length > 0) html += '<hr class="trace-divider">';

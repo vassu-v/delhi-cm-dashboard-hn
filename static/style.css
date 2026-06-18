@@ -428,6 +428,15 @@ html, body {
   white-space: pre-wrap; font-family: 'IBM Plex Mono', monospace;
   max-height: 160px; overflow-y: auto; background: var(--paper);
 }
+details.trace-collapsible summary {
+  cursor: pointer; list-style: none; user-select: none; border-bottom: none;
+}
+details.trace-collapsible summary::-webkit-details-marker { display: none; }
+details.trace-collapsible summary::after {
+  float: right; content: '▶'; font-size: 9px; opacity: 0.5; margin-left: 8px;
+}
+details.trace-collapsible[open] > summary { border-bottom: 1px solid var(--line); }
+details.trace-collapsible[open] summary::after { content: '▼'; }
 .trace-divider { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
 .trace-recs-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); margin-bottom: 14px; }
 
